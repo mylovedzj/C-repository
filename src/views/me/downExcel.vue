@@ -300,6 +300,7 @@ import XLSX from 'xlsx';
            })
        },
       toLargerCSV(dataPage){
+        //console.log(dataPage);
          const table = [];
          table.push({
             A:"姓名",
@@ -307,25 +308,43 @@ import XLSX from 'xlsx';
             C:"申报时间",
             D:"审核时间",
             E:"周",
-            F:"内容"
+            F:"内容",
+            G:"目标",
+            H:"完成情况",
          });
-         dataPage.forEach((item)=>{
+         dataPage.forEach((items)=>{
+            let nr='';
+            let goal= '';
+            let finishs ='';
+           items.nr.replace(/\s/g,"").split("--").forEach((item,index)=>{
+               nr+=item.split("目标")[0]
+               goal+= item.split("目标")[1].split("完成情况")[0];
+               finishs+="任务"+(index+1)+item.split("目标")[1].split("完成情况")[1];
+           })
+           items.nr = nr;
+           items.goal = goal;
+           items.finishs = finishs;
             const row ={
-                A:item.xm,
-                B:item.zt,
-                C:item.txsj+'\t',
-                D:item.shsj+'\t',
-                E:item.week,
-                F:item.nr.replace(/\s/g,""),
+                A:items.xm,
+                B:items.zt,
+                C:items.txsj+'\t',
+                D:items.shsj+'\t',
+                E:items.week,
+                F:items.nr,
+                G:items.goal,
+                H:items.finishs
             }
              table.push(row);
          })
+        
          //创建book
           var wb = XLSX.utils.book_new();
           //json转sheet
-          var ws = XLSX.utils.json_to_sheet(table, {header:["A","B","C","D","E","F"], skipHeader:true});
+          var ws = XLSX.utils.json_to_sheet(table, {header:["A","B","C","D","E","F","G","H"], skipHeader:true});
           //设置列宽
           ws['!cols']= [
+              {width: 15},
+              {width: 15},
               {width: 15},
               {width: 15},
               {width: 15},
