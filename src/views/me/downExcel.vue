@@ -89,6 +89,8 @@
 <script>
 import $axios from "@/utils/axios.js";
 import $vant from "@/utils/vant.ts";
+import XLSX from 'xlsx';
+
   export default {
     data() {
       return {
@@ -297,28 +299,58 @@ import $vant from "@/utils/vant.ts";
                 }
            })
        },
-     formatJson(filterVal, jsonData) {
-          return jsonData.map(v => filterVal.map(j => v[j]))
-                },
       toLargerCSV(dataPage){
-        //CSV格式可以自己设定，适用MySQL导入或者excel打开。
-        //由于Excel单元格对于数字只支持15位，且首位为0会舍弃 建议用 =“数值” 
-        let str = '姓名,处理状态,申报时间,审核时间,周,内容\n';
-        for(let i=0;i<dataPage.length;i++){
-          str += `${dataPage[i].xm},${dataPage[i].zt},${dataPage[i].txsj+'\t'},${dataPage[i].shsj+'\t'},${dataPage[i].week},${dataPage[i].nr.replace(/\s/g,"")}\n`;
-        }
-         str = "\uFEFF"+ str;
-         // console.log(str);
-         let blob = new Blob([str], {type: "text/csv;charset=utf-8"});  
-         // blob = new Blob([String.fromCharCode(0xFEFF), blob], {type: blob.type});  //解决中文乱码问题
-         //console.log(window.URL.createObjectURL(blob));
-         let object_url = window.URL.createObjectURL(blob); 
-         var link = document.createElement("a");
-         link.href = object_url;
-         link.download = dataPage.length+".csv";
-         document.body.appendChild(link);
-         link.click();
-         document.body.removeChild(link);        
+         const table = [];
+         table.push({
+            A:"姓名",
+            B:"处理状态",
+            C:"申报时间",
+            D:"审核时间",
+            E:"周",
+            F:"内容"
+         });
+         dataPage.forEach((item)=>{
+            const row ={
+                A:item.xm,
+                B:item.zt,
+                C:item.txsj+'\t',
+                D:item.shsj+'\t',
+                E:item.week,
+                F:item.nr.replace(/\s/g,""),
+            }
+             table.push(row);
+         })
+         //创建book
+          var wb = XLSX.utils.book_new();
+          //json转sheet
+          var ws = XLSX.utils.json_to_sheet(table, {header:["A","B","C","D","E","F"], skipHeader:true});
+          //设置列宽
+          ws['!cols']= [
+              {width: 15},
+              {width: 15},
+              {width: 15},
+              {width: 15},
+              {width: 15},
+              {width: 50},
+          ];
+          let timestamp = table.length;
+          //sheet写入book
+          XLSX.utils.book_append_sheet(wb, ws, "file");
+          //输出
+          XLSX.writeFile(wb,"file"+timestamp+".xlsx");
+        // let str = '姓名,处理状态,申报时间,审核时间,周,内容\n';
+        // for(let i=0;i<dataPage.length;i++){
+        //   str += `${dataPage[i].xm},${dataPage[i].zt},${dataPage[i].txsj+'\t'},${dataPage[i].shsj+'\t'},${dataPage[i].week},${dataPage[i].nr.replace(/\s/g,"")}\n`;
+        // }
+        //  str = "\uFEFF"+ str;
+        //  let blob = new Blob([str], {type: "text/csv;charset=utf-8"});  
+        //  let object_url = window.URL.createObjectURL(blob); 
+        //  var link = document.createElement("a");
+        //  link.href = object_url;
+        //  link.download = dataPage.length+".csv";
+        //  document.body.appendChild(link);
+        //  link.click();
+        //  document.body.removeChild(link);        
         }
      }
   }
