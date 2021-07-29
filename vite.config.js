@@ -60,6 +60,7 @@ export default ({command, mode}) => {
         base: PRODUCTION === mode ? '/weekPlan/' : './',
         server: {
             port: 80,
+            host: "192.9.214.35",
             https: false,
         },
         css: {
